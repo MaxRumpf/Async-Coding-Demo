@@ -1,4 +1,5 @@
 import * as https from "https";
+import { plot, Plot } from 'nodeplotlib';
 
 const BASE_URL = "https://gorest.co.in/";
 
@@ -139,5 +140,45 @@ async function loadUserDataAsyncBulk(num: number): Promise<Error | undefined> {
     }
 }
 //executeNestedCallbackLoad(50);
-loadUsersWithCallbacksAtOnce(100);
+//loadUsersWithCallbacksAtOnce(100);
 //loadUserDataAsyncBulk(100);
+
+async function createGraphs() {
+    const blockedNumbers = [];
+    const blockedTimes = [];
+    for(let i= 1; i < 50; i = i+5) {
+        const startTime = new Date().getTime();
+        await loadUserDataAsyncOneByOne(i);
+        const timeTaken = new Date().getTime() - startTime;
+        blockedNumbers.push(i);
+        blockedTimes.push(timeTaken/1000);
+    }
+
+    const bulkNumbers = [];
+    const bulkTimes = [];
+    for(let i= 1; i < 50; i = i+5) {
+        const startTime = new Date().getTime();
+        await loadUserDataAsyncBulk(i);
+        const timeTaken = new Date().getTime() - startTime;
+        bulkNumbers.push(i);
+        bulkTimes.push(timeTaken/1000);
+    }
+
+    const data: Plot[] = [
+        {
+          x: blockedNumbers,
+          y: blockedTimes,
+          type: 'scatter',
+          name: "Blocking IO Times"
+        },
+        {
+          x: bulkNumbers,
+          y: bulkTimes,
+          type: 'scatter',
+          name: "Non-Blocking IO Times"
+        },
+      ];
+      
+      plot(data);
+}
+createGraphs();
